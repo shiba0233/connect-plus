@@ -5,7 +5,7 @@
   "description": "足し算パズル — 暇つぶし用の足し算パズル (PWA)",
   "type": "module",
   "scripts": {
-    "test": "node --test test/",
+    "test": "node --test \"test/**/*.test.js\"",
     "icons": "node tools/make-icons.js",
     "start": "node tools/serve.js"
   }
