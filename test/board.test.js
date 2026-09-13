@@ -7,15 +7,28 @@ import { COLS, ROWS, MIN_VALUE, MAX_VALUE } from '../src/game/config.js';
 
 const at = (row, col) => row * COLS + col;
 
-test('繋げられるセル: 中央は12セル（上下左右4 + 斜め1マス4 + 斜め2マス4）', () => {
-  const table = neighborTable();
-  const center = at(2, 2);
+test('繋げられるセル: 上下左右1マス・斜め1マス・斜め2マスがすべて入る', () => {
+  // 6x6 の盤面なら12方向すべてが盤面に収まるセルがある
+  const table = neighborTable(6, 6);
+  const center = 2 * 6 + 2;   // (2,2)
   assert.equal(table[center].length, 12);
   assert.deepEqual(
     [...table[center]].sort((a, b) => a - b),
-    [at(1, 2), at(3, 2), at(2, 1), at(2, 3),
-     at(1, 1), at(1, 3), at(3, 1), at(3, 3),
-     at(0, 0), at(0, 4), at(4, 0), at(4, 4)].sort((a, b) => a - b),
+    [1 * 6 + 2, 3 * 6 + 2, 2 * 6 + 1, 2 * 6 + 3,          // 上下左右1マス
+     1 * 6 + 1, 1 * 6 + 3, 3 * 6 + 1, 3 * 6 + 3,          // 斜め1マス
+     0 * 6 + 0, 0 * 6 + 4, 4 * 6 + 0, 4 * 6 + 4]          // 斜め2マス
+      .sort((a, b) => a - b),
+  );
+});
+
+test('繋げられるセル: 実際の盤面（4列5行）', () => {
+  const table = neighborTable();
+  // (2,1) からは、斜め2マスのうち盤面に収まる (0,3) と (4,3) だけが加わる
+  assert.deepEqual(
+    [...table[at(2, 1)]].sort((a, b) => a - b),
+    [at(1, 1), at(3, 1), at(2, 0), at(2, 2),
+     at(1, 0), at(1, 2), at(3, 0), at(3, 2),
+     at(0, 3), at(4, 3)].sort((a, b) => a - b),
   );
 });
 
@@ -29,10 +42,10 @@ test('繋げられるセル: 盤面の外には出ない', () => {
 });
 
 test('繋げられるセル: 左右の端をまたがない', () => {
-  // (1,4) の右隣は (1,0) ではない
-  assert.equal(isConnectable(at(1, 4), at(1, 0)), false);
-  assert.equal(isConnectable(at(1, 4), at(2, 0)), false);
-  assert.equal(isConnectable(at(1, 4), at(0, 3)), true);
+  const right = COLS - 1;
+  assert.equal(isConnectable(at(1, right), at(1, 0)), false);
+  assert.equal(isConnectable(at(1, right), at(2, 0)), false);
+  assert.equal(isConnectable(at(1, right), at(0, right - 1)), true);
 });
 
 test('繋げられるセル: 斜め2マスは可、上下左右2マスは不可', () => {
@@ -49,30 +62,42 @@ test('繋げられるセルの関係は対称', () => {
   });
 });
 
-test('盤面: 5列6行、数字は1〜9', () => {
+test('盤面: 数字は1〜9。0は出ない', () => {
   const board = new Board({ rng: createRng(1) });
   assert.equal(board.cells.length, COLS * ROWS);
+  assert.equal(MIN_VALUE, 1, '0 が出ないことを MIN_VALUE で保証している');
   for (const cell of board.cells) {
     assert.ok(Number.isInteger(cell.value));
-    assert.ok(cell.value >= MIN_VALUE && cell.value <= MAX_VALUE);
+    assert.ok(cell.value >= MIN_VALUE && cell.value <= MAX_VALUE, `範囲外の数字 ${cell.value}`);
   }
   assert.equal(new Set(board.cells.map((c) => c.id)).size, COLS * ROWS, 'id が重複している');
+});
+
+test('補充と組み直しを繰り返しても0は出ない', () => {
+  const board = new Board({ rng: createRng(9) });
+  for (let round = 0; round < 300; round += 1) {
+    board.clear([0, 1]);
+    if (round % 10 === 0) board.randomize();
+    for (const cell of board.cells) {
+      assert.ok(cell.value >= 1 && cell.value <= 9, `範囲外の数字 ${cell.value}`);
+    }
+  }
 });
 
 test('消去: 上のセルが落ちて、上端に補充される', () => {
   const board = new Board({ rng: createRng(2) });
   board.cells.forEach((cell, i) => { cell.value = i; });
   const top = board.cells[at(0, 2)];
-  const mid = board.cells[at(3, 2)];
+  const mid = board.cells[at(2, 2)];
 
-  const { removed, spawned } = board.clear([at(4, 2), at(5, 2)]);
+  const { removed, spawned } = board.clear([at(3, 2), at(4, 2)]);
 
   assert.equal(removed.length, 2);
   assert.equal(spawned.length, 2);
   assert.equal(board.cells.length, COLS * ROWS);
   // 消えた2つのぶんだけ、同じ列のセルが2行ぶん落ちる
   assert.equal(board.cells[at(2, 2)].id, top.id);
-  assert.equal(board.cells[at(5, 2)].id, mid.id);
+  assert.equal(board.cells[at(4, 2)].id, mid.id);
   // 補充は上端に入る
   assert.ok(spawned.includes(board.cells[at(0, 2)].id));
   assert.ok(spawned.includes(board.cells[at(1, 2)].id));

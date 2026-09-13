@@ -93,12 +93,13 @@ body {
 .home__title { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 0.04em; }
 .home__lead { margin: 6px 0 0; color: var(--text-dim); font-size: 14px; }
 
+/* お題は10〜25の16個。4列に並べる (spec 3.7) */
 .target-list {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-content: center;
+  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -106,12 +107,13 @@ body {
 
 .target-button {
   width: 100%;
-  min-height: 72px;
+  min-height: 64px;                  /* 44pt 以上を確保 (spec 6.4) */
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 20px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 10px 4px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: var(--surface);
@@ -121,9 +123,9 @@ body {
   transition: background var(--anim) var(--ease);
 }
 .target-button:active { background: var(--surface-raised); }
-.target-button__value { font-size: 34px; font-weight: 600; letter-spacing: 0.02em; }
-.target-button__best { color: var(--text-dim); font-size: 14px; font-variant-numeric: tabular-nums; }
-.target-button__best b { color: var(--text); font-size: 18px; font-weight: 600; margin-left: 4px; }
+.target-button__value { font-size: 26px; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.target-button__best { color: var(--text-dim); font-size: 11px; font-variant-numeric: tabular-nums; }
+.target-button__best b { color: var(--text); font-weight: 600; margin-left: 3px; }
 
 .home__foot { padding: 8px 0 4px; text-align: center; }
 
@@ -189,47 +191,67 @@ body {
 }
 
 .board {
+  --cols: 4;
+  --rows: 5;
   position: relative;
   width: 100%;
-  max-width: min(100%, 420px, calc((100dvh - 260px) * 5 / 6));
-  aspect-ratio: 5 / 6;
+  max-width: min(100%, 420px, calc((100dvh - 250px) * var(--cols) / var(--rows)));
+  aspect-ratio: var(--cols) / var(--rows);
   touch-action: none;               /* なぞり中にスクロール・ピンチズームさせない (spec 6.4) */
+}
+
+/* タイルの層と数字の層。間にチェインの線を挟む */
+.board__layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 .cell {
   position: absolute;
   top: 0;
   left: 0;
-  width: 20%;                        /* 5列 */
-  height: 16.6667%;                  /* 6行 */
+  width: calc(100% / var(--cols));
+  height: calc(100% / var(--rows));
   transition: transform var(--anim) var(--ease);
   will-change: transform;
 }
 
+/* 配置は .cell の transform が持つので、見た目の動きは必ず内側の要素に付ける */
 .cell__face {
   position: absolute;
   inset: var(--board-gap);
+  border-radius: 12px;
+  background: var(--surface);
+  transition: background var(--anim) var(--ease);
+}
+
+.cell--label {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  background: var(--surface);
-  color: var(--text);
-  font-size: clamp(20px, 6vw, 28px);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  transition: background var(--anim) var(--ease), color var(--anim) var(--ease);
 }
 
-.cell.is-chained .cell__face {
+.cell__num {
+  color: var(--text);
+  font-size: clamp(22px, 7vw, 32px);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.cell--tile.is-chained .cell__face {
   background: var(--accent-dim);
 }
 
 .cell.is-clearing { pointer-events: none; }
-.cell.is-clearing .cell__face { animation: cell-clear var(--anim) var(--ease) forwards; }
-.cell.is-spawning .cell__face { animation: cell-spawn var(--anim) var(--ease); }
-.cell.is-shaking .cell__face { animation: cell-shake 120ms ease-in-out; }
-.cell.is-reshuffled .cell__face { animation: cell-reshuffle var(--anim) var(--ease); }
+.cell.is-clearing .cell__face,
+.cell.is-clearing .cell__num { animation: cell-clear var(--anim) var(--ease) forwards; }
+.cell.is-spawning .cell__face,
+.cell.is-spawning .cell__num { animation: cell-spawn var(--anim) var(--ease); }
+.cell.is-shaking .cell__face,
+.cell.is-shaking .cell__num { animation: cell-shake 120ms ease-in-out; }
+.cell.is-reshuffled .cell__face,
+.cell.is-reshuffled .cell__num { animation: cell-reshuffle var(--anim) var(--ease); }
 
 @keyframes cell-clear {
   from { opacity: 1; transform: scale(1); }
@@ -265,7 +287,7 @@ body {
 .board__line polyline {
   fill: none;
   stroke: var(--accent);
-  stroke-width: 0.17;
+  stroke-width: 0.15;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -277,7 +299,14 @@ body {
   padding: 12px 4px 4px;
 }
 .chain-sum__label { color: var(--text-dim); font-size: 13px; }
-.chain-sum__value { font-size: 26px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.chain-sum__value {
+  font-size: 26px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition: color var(--anim) var(--ease);
+}
+/* お題ちょうど。指を離せば消える状態だと分かるように色だけ変える（点滅はしない） */
+.chain-sum__value.is-complete { color: var(--accent); }
 
 /* ---------------------------------------------------------------- 結果 */
 

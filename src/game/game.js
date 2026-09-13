@@ -26,8 +26,6 @@ export class Game {
     /** @type {number[]} なぞっているセルの index */
     this.chain = [];
     this.chainSum = 0;
-    /** 成立した直後は、指を離すまで次のチェインを始めない */
-    this.locked = false;
     this.startedAt = 0;
     this.endsAt = 0;
   }
@@ -48,8 +46,8 @@ export class Game {
   update(now = Date.now()) {
     if (this.state === 'playing' && now >= this.endsAt) {
       this.state = 'over';
+      // 時間切れの瞬間になぞっていたチェインは、成立していても消えない
       this.resetChain();
-      this.locked = false;
     }
     return this.state;
   }
@@ -58,11 +56,15 @@ export class Game {
   abort() {
     this.state = 'over';
     this.resetChain();
-    this.locked = false;
   }
 
   get isPlaying() {
     return this.state === 'playing';
+  }
+
+  /** 合計がお題ちょうどで、2セル以上ある。指を離せば消える状態 */
+  get isComplete() {
+    return this.chainSum === this.target && this.chain.length >= MIN_CHAIN_LENGTH;
   }
 
   /**
@@ -71,7 +73,7 @@ export class Game {
    * @returns {{type: 'started' | 'rejected' | 'ignored', index?: number}}
    */
   beginChain(index) {
-    if (!this.isPlaying || this.locked) return { type: 'ignored' };
+    if (!this.isPlaying) return { type: 'ignored' };
     if (this.board.valueAt(index) > this.target) return { type: 'rejected', index };
     this.chain = [index];
     this.chainSum = this.board.valueAt(index);
@@ -79,10 +81,11 @@ export class Game {
   }
 
   /**
-   * なぞり先を伸ばす。戻れば外れる。成立したら消える。
+   * なぞり先を伸ばす。戻れば外れる。
+   * 合計がちょうど一致してもここでは消さない。消えるのは指を離したとき (endChain)。
    * 繋げられない理由（超過・位置・重複）による出し分けはしない (spec 6.5)。
    * @param {number} index
-   * @returns {{type: 'added' | 'removed' | 'rejected' | 'cleared' | 'ignored', index?: number} & object}
+   * @returns {{type: 'added' | 'removed' | 'rejected' | 'ignored', index?: number}}
    */
   extendChain(index) {
     if (!this.isPlaying || this.chain.length === 0) return { type: 'ignored' };
@@ -105,11 +108,24 @@ export class Game {
 
     this.chain.push(index);
     this.chainSum = sum;
-
-    if (sum === this.target && this.chain.length >= MIN_CHAIN_LENGTH) {
-      return this.commitChain();
-    }
     return { type: 'added', index };
+  }
+
+  /**
+   * 指を離した。合計がお題ちょうどなら成立して消える。
+   * 足りないまま離した場合は不成立で、解除されるだけ。ペナルティは無い (spec 3.3)。
+   *
+   * 一致した瞬間ではなく指を離したときに消すのは、プレイヤーに取り消す余地を残すため。
+   * なぞっている途中でたまたま一致しても、戻って別の繋ぎ方に変えられる。
+   *
+   * @returns {{type: 'cleared', cells: number[], removed: number[], spawned: number[], gained: number, score: number, reshuffled: boolean} | {type: 'released'}}
+   */
+  endChain() {
+    if (!this.isPlaying || !this.isComplete) {
+      this.resetChain();
+      return { type: 'released' };
+    }
+    return this.commitChain();
   }
 
   /**
@@ -121,20 +137,8 @@ export class Game {
     const { removed, spawned } = this.board.clear(cells);
     this.score += cells.length;   // スコアは消したセルの総数 (spec 3.6)
     this.resetChain();
-    this.locked = true;           // 指を離すまで次のチェインは始めない
     const reshuffled = ensureSolvable(this.board, this.target, this.rng);
     return { type: 'cleared', cells, removed, spawned, gained: cells.length, score: this.score, reshuffled };
-  }
-
-  /**
-   * 指を離した。合計がお題未満なら不成立、チェインが解除されるだけ (spec 3.3)。
-   * @returns {{type: 'released' | 'unlocked'}}
-   */
-  endChain() {
-    const wasLocked = this.locked;
-    this.resetChain();
-    this.locked = false;
-    return { type: wasLocked ? 'unlocked' : 'released' };
   }
 
   resetChain() {

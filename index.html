@@ -22,7 +22,7 @@
   <section class="screen screen--home" id="screen-home">
     <header class="home__head">
       <h1 class="home__title">足し算パズル</h1>
-      <p class="home__lead">合計がお題になるように繋げて消す。120秒。</p>
+      <p class="home__lead">合計がお題になるように繋げて消す。90秒。</p>
     </header>
 
     <ul class="target-list" id="target-list"></ul>
@@ -58,16 +58,19 @@
     </dl>
 
     <div class="board-area">
+      <!-- 下からタイル → チェインの線 → 数字。線がタイルの上を渡り、数字は線に隠れない -->
       <div class="board" id="board" role="application" aria-label="盤面">
-        <svg class="board__line" id="chain-line" viewBox="0 0 5 6" aria-hidden="true">
+        <div class="board__layer" id="board-tiles"></div>
+        <svg class="board__line" id="chain-line" viewBox="0 0 4 5" aria-hidden="true">
           <polyline id="chain-polyline" points=""></polyline>
         </svg>
+        <div class="board__layer" id="board-labels"></div>
       </div>
     </div>
 
     <div class="chain-sum" id="chain-sum-box">
       <span class="chain-sum__label">合計</span>
-      <strong class="chain-sum__value" id="chain-sum-value">0</strong>
+      <strong class="chain-sum__value" id="chain-sum-value">—</strong>
     </div>
   </section>
 

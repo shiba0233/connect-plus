@@ -17,13 +17,18 @@ test('生成した盤面は必ず成立可能', () => {
 });
 
 test('詰んだ盤面は組み直される', () => {
+  // 全部同じ数字 v の盤面は、お題が v の倍数でなければ必ず詰んでいる。
+  // （お題18に対する9のように、割り切れる組み合わせは避ける）
+  const deadValue = (target) => [MAX_VALUE, 8, 7].find((v) => target % v !== 0);
+
   for (const target of TARGETS) {
     const rng = createRng(target);
     const board = new Board({ rng });
-    board.cells.forEach((cell) => { cell.value = MAX_VALUE; });   // 全部9＝どのお題でも詰み
-    assert.equal(hasChain(board.values(), target), false, '前提: 詰んでいる');
+    const value = deadValue(target);
+    board.cells.forEach((cell) => { cell.value = value; });
+    assert.equal(hasChain(board.values(), target), false, `前提: お題${target} / 全部${value} は詰んでいる`);
     assert.equal(ensureSolvable(board, target, rng), true, '組み直されなかった');
-    assert.ok(hasChain(board.values(), target));
+    assert.ok(hasChain(board.values(), target), `お題${target} が組み直しても詰んだまま`);
   }
 });
 

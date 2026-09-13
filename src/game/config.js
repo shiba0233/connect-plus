@@ -2,19 +2,19 @@
 // 未決事項（spec 8章）を実際に遊んでから詰めるとき、触るのはこのファイルだけで済むようにしておく。
 
 /** 盤面の列数 (spec 3.1) */
-export const COLS = 5;
+export const COLS = 4;
 /** 盤面の行数 (spec 3.1) */
-export const ROWS = 6;
+export const ROWS = 5;
 
 /** セルが取りうる数字の範囲 (spec 3.1) */
 export const MIN_VALUE = 1;
 export const MAX_VALUE = 9;
 
-/** お題の候補 (spec 3.7) */
-export const TARGETS = [10, 15, 20, 25];
+/** お題の候補 (spec 3.7)。10〜25 を1刻み */
+export const TARGETS = Array.from({ length: 16 }, (_, i) => 10 + i);
 
 /** 制限時間。お題ごとの自己ベストを比較可能にするため固定 (spec 3.6) */
-export const DURATION_MS = 120_000;
+export const DURATION_MS = 90_000;
 
 /** この残り時間を切ったら表示で気づけるようにする (spec 3.6) */
 export const WARN_MS = 20_000;
