@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>足し算パズル</title>
+<meta name="description" content="合計がお題の数になるように数字を繋げて消す、120秒の足し算パズル">
+<meta name="theme-color" content="#121212">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="足し算パズル">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="stylesheet" href="./src/styles.css">
+</head>
+<body>
+
+<main id="app">
+
+  <!-- ホーム (spec 4.1) -->
+  <section class="screen screen--home" id="screen-home">
+    <header class="home__head">
+      <h1 class="home__title">足し算パズル</h1>
+      <p class="home__lead">合計がお題になるように繋げて消す。120秒。</p>
+    </header>
+
+    <ul class="target-list" id="target-list"></ul>
+
+    <footer class="home__foot">
+      <button type="button" class="text-button" id="theme-button" aria-live="polite">テーマ: ダーク</button>
+    </footer>
+  </section>
+
+  <!-- プレイ (spec 4.2) -->
+  <section class="screen screen--play" id="screen-play" hidden>
+    <header class="play__head">
+      <div class="play__target">
+        <span class="play__target-label">お題</span>
+        <strong class="play__target-value" id="target-value">10</strong>
+      </div>
+      <button type="button" class="text-button play__quit" id="quit-button">やめる</button>
+    </header>
+
+    <dl class="stats">
+      <div class="stats__item">
+        <dt class="stats__label">残り</dt>
+        <dd class="stats__value" id="time-value">120</dd>
+      </div>
+      <div class="stats__item">
+        <dt class="stats__label">スコア</dt>
+        <dd class="stats__value" id="score-value">0</dd>
+      </div>
+      <div class="stats__item" id="best-item">
+        <dt class="stats__label" id="best-label">ベスト</dt>
+        <dd class="stats__value" id="best-value">—</dd>
+      </div>
+    </dl>
+
+    <div class="board-area">
+      <div class="board" id="board" role="application" aria-label="盤面">
+        <svg class="board__line" id="chain-line" viewBox="0 0 5 6" aria-hidden="true">
+          <polyline id="chain-polyline" points=""></polyline>
+        </svg>
+      </div>
+    </div>
+
+    <div class="chain-sum" id="chain-sum-box">
+      <span class="chain-sum__label">合計</span>
+      <strong class="chain-sum__value" id="chain-sum-value">0</strong>
+    </div>
+  </section>
+
+  <!-- 結果 (spec 4.3) -->
+  <section class="screen screen--result" id="screen-result" hidden>
+    <div class="result__body">
+      <p class="result__caption">お題 <span id="result-target">10</span></p>
+      <p class="result__score-label">スコア</p>
+      <p class="result__score" id="result-score">0</p>
+      <p class="result__best" id="result-best">ベスト —</p>
+    </div>
+    <div class="result__actions">
+      <button type="button" class="button button--primary" id="retry-button">もう一度</button>
+      <button type="button" class="button" id="home-button">ホームへ</button>
+    </div>
+  </section>
+
+</main>
+
+<script type="module" src="./src/app/main.js"></script>
+</body>
+</html>
