@@ -33,7 +33,13 @@ const ui = {
   homeButton: el('home-button'),
 };
 
-const boardView = new BoardView(el('board'), el('chain-polyline'), {
+const boardView = new BoardView({
+  board: el('board'),
+  tiles: el('board-tiles'),
+  labels: el('board-labels'),
+  svg: el('chain-line'),
+  polyline: el('chain-polyline'),
+}, {
   onBegin: handleBegin,
   onExtend: handleExtend,
   onEnd: handleEnd,
@@ -71,7 +77,7 @@ function renderHome() {
     best.className = 'target-button__best';
     const score = bests[target];
     // 未プレイなら「—」 (spec 4.1)
-    best.append('ベスト', Object.assign(document.createElement('b'), {
+    best.append('best', Object.assign(document.createElement('b'), {
       textContent: Number.isInteger(score) ? String(score) : '—',
     }));
 
@@ -107,7 +113,7 @@ function startGame(target) {
 
   ui.targetValue.textContent = String(target);
   ui.scoreValue.textContent = '0';
-  ui.chainSum.textContent = '0';
+  showChainSum();
   ui.timeValue.classList.remove('is-warn');
   ui.bestItem.classList.remove('is-best');
   ui.bestLabel.textContent = 'ベスト';
@@ -163,30 +169,38 @@ function handleExtend(index) {
       // 理由による出し分けはしない (spec 6.5)
       boardView.shake(index);
       break;
-    case 'cleared':
-      commitCleared(result);
-      break;
     default:
       break;
   }
 }
 
+/** 指を離した。合計がお題ちょうどならここで消える */
 function handleEnd() {
   if (!game) return;
-  game.endChain();
-  updateChain();
+  const result = game.endChain();
+  if (result.type === 'cleared') {
+    commitCleared(result);
+  } else {
+    updateChain();
+  }
 }
 
 function updateChain() {
-  boardView.showChain(game.board, game.chain);
-  ui.chainSum.textContent = String(game.chainSum);
+  boardView.showChain(game.board, game.chain, game.isComplete);
+  showChainSum(game.chain.length ? game.chainSum : null, game.isComplete);
+}
+
+/** なぞっていないときは数字を出さない */
+function showChainSum(sum = null, complete = false) {
+  ui.chainSum.textContent = sum === null ? '—' : String(sum);
+  ui.chainSum.classList.toggle('is-complete', complete);
 }
 
 function commitCleared(result) {
   boardView.clearCells(result.removed);
   boardView.sync(game.board, { spawned: result.spawned, reshuffled: result.reshuffled });
   boardView.showChain(game.board, []);
-  ui.chainSum.textContent = '0';
+  showChainSum();
   ui.scoreValue.textContent = String(game.score);
 
   // ベストを超えた瞬間に、その場で分かるようにする (spec 3.7)

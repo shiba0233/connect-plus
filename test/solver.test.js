@@ -48,8 +48,8 @@ test('斜め2マスを使わないと成立しない盤面を見つけられる'
 });
 
 test('繋がっていない2セルだけでは成立しない', () => {
-  // (0,0) と (0,3) は繋がらない位置
-  const values = boardWith([[at(0, 0), 4], [at(0, 3), 6]]);
+  // (0,0) と (3,0) は繋がらない位置（縦に3マス離れている）
+  const values = boardWith([[at(0, 0), 4], [at(3, 0), 6]]);
   assert.equal(hasChain(values, 10), false);
 });
 
@@ -66,7 +66,7 @@ test('見つけたチェインは必ずルールを満たす', () => {
 
 test('探索を使い切ったら「成立しない」扱いにする（詰みを見逃さない側に倒す）', () => {
   // 盤面の最後の方にしか成立する組み合わせが無い盤面
-  const values = boardWith([[at(5, 3), 1]]);   // 9 + 1 = 10 のみ成立
+  const values = boardWith([[at(ROWS - 1, COLS - 1), 1]]);   // 9 + 1 = 10 のみ成立
   assert.ok(hasChain(values, 10), '前提: 十分な探索なら見つかる');
   // 探索を打ち切ると、そこへ辿り着く前に「成立しない」と答える
   assert.equal(findChain(values, 10, { budget: 5 }), null);
@@ -110,7 +110,7 @@ test('総当たりと一致する（3x3盤面で全数確認）', () => {
 
   for (let i = 0; i < 400; i += 1) {
     const values = Array.from({ length: size }, () => randomInt(rng, 1, 9));
-    for (const target of [7, 10, 15, 20, 25]) {
+    for (const target of [7, 10, 13, 16, 20, 25]) {
       assert.equal(
         hasChain(values, target, { cols, rows }),
         bruteForce(values, target),
@@ -124,7 +124,7 @@ test('チェインの検証: 重複・非隣接・1セル・合計違いを弾�
   const values = filled(5);
   assert.equal(isValidChain(values, 10, [at(0, 0), at(0, 1)]), true);
   assert.equal(isValidChain(values, 10, [at(0, 0), at(0, 0)]), false);     // 重複
-  assert.equal(isValidChain(values, 10, [at(0, 0), at(0, 3)]), false);     // 繋がらない
+  assert.equal(isValidChain(values, 10, [at(0, 0), at(3, 0)]), false);     // 繋がらない
   assert.equal(isValidChain(values, 5, [at(0, 0)]), false);                // 1セル
   assert.equal(isValidChain(values, 12, [at(0, 0), at(0, 1)]), false);     // 不足
   assert.equal(isValidChain(values, 10, [at(0, 0), at(0, 1), at(0, 2)]), false); // 超過
