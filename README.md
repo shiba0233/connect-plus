@@ -16,6 +16,18 @@ npm run icons # icons/*.png を作り直す
 スマホで遊ぶときは、同じネットワークから `http://<PCのIP>:8080` を開いてホーム画面に追加する。
 Service Worker は `https` か `localhost` でしか登録されない（無くても遊べる）。
 
+## 公開
+
+GitHub Pages で公開している。main に入ったものがそのまま出る。
+
+<https://shiba0233.github.io/connect-plus/>
+
+iPhone なら Safari で開いて、共有ボタン → 「ホーム画面に追加」。アドレスバーの無い状態で起動し、
+一度開いたあとはオフラインでも遊べる。
+
+ビルドは無いので、リポジトリのファイルがそのまま配信される。`.nojekyll` は Pages の Jekyll 処理を
+止めるためのもの（JSDoc の `{{` が Liquid 構文と紛らわしいため）。
+
 ## 構成
 
 ロジックと表示を分けてある。`src/game/` は DOM も localStorage も触らないので、後でネイティブに作り直すときも中身を使い回せる。
