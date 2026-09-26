@@ -338,3 +338,93 @@ body {
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 1ms !important; transition-duration: 1ms !important; }
 }
+
+/* ---------------------------------------------------------------- 時間帯 */
+
+.screen--stats {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.stats__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.stats__title { margin: 0; font-size: 20px; font-weight: 600; }
+.stats__lead { margin: 16px 0 20px; font-size: 17px; line-height: 1.6; }
+.stats__lead b { color: var(--accent); font-size: 22px; font-weight: 600; }
+.stats__note { margin: 20px 0 0; color: var(--text-dim); font-size: 12px; line-height: 1.7; white-space: pre-line; }
+.stats__empty { color: var(--text-dim); font-size: 14px; }
+
+/*
+ * 時間帯ごとの出来。自分の平均（中央の線）より右が良い、左が悪い。
+ * 良し悪しは「線のどちら側か」で示し、色では示さない。
+ * 低彩度の1色とグレーは見分けがつかないため（検証で ΔE 5.0）。
+ */
+.chart { display: flex; flex-direction: column; gap: 2px; }
+
+.chart__row {
+  display: grid;
+  grid-template-columns: 3.2em 1fr 3.2em 2.8em;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+}
+/* 回数が足りない時間帯 */
+.chart__row.is-thin .chart__bar { opacity: 0.25; }
+.chart__row.is-thin .chart__hour,
+.chart__row.is-thin .chart__value { opacity: 0.6; }
+.chart__hour { color: var(--text-dim); font-size: 13px; font-variant-numeric: tabular-nums; text-align: right; }
+.chart__row.is-best .chart__hour { color: var(--text); font-weight: 600; }
+
+.chart__track { position: relative; height: 18px; }
+/* 自分の平均 */
+.chart__track::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--line);
+}
+
+.chart__bar {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: var(--len);
+  background: var(--accent);
+  opacity: 0.55;
+}
+.chart__row.is-best .chart__bar { opacity: 1; }
+.chart__bar--up { left: 50%; border-radius: 0 4px 4px 0; }
+.chart__bar--down { right: 50%; border-radius: 4px 0 0 4px; }
+
+.chart__value {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--text-dim);
+}
+.chart__row.is-best .chart__value { color: var(--text); font-weight: 600; }
+
+.chart__count {
+  color: var(--text-dim);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.chart__axis {
+  display: grid;
+  grid-template-columns: 3.2em 1fr 6em;
+  gap: 6px;
+  margin-top: 6px;
+  color: var(--text-dim);
+  font-size: 11px;
+}
+.chart__axis span:nth-child(2) { text-align: center; }

@@ -28,6 +28,7 @@
     <ul class="target-list" id="target-list"></ul>
 
     <footer class="home__foot">
+      <button type="button" class="text-button" id="stats-button">時間帯</button>
       <button type="button" class="text-button" id="theme-button" aria-live="polite">テーマ: ダーク</button>
     </footer>
   </section>
@@ -72,6 +73,17 @@
       <span class="chain-sum__label">合計</span>
       <strong class="chain-sum__value" id="chain-sum-value">—</strong>
     </div>
+  </section>
+
+  <!-- 時間帯 (spec 4.4)。何時に調子がいいかだけを見る -->
+  <section class="screen screen--stats" id="screen-stats" hidden>
+    <header class="stats__head">
+      <h2 class="stats__title">時間帯</h2>
+      <button type="button" class="text-button" id="stats-back">もどる</button>
+    </header>
+    <p class="stats__lead" id="stats-lead"></p>
+    <div class="chart" id="stats-chart"></div>
+    <p class="stats__note" id="stats-note"></p>
   </section>
 
   <!-- 結果 (spec 4.3) -->
