@@ -100,26 +100,26 @@ test('超過するセルへは繋げられない', () => {
   assert.equal(game.chainSum, 8);
 });
 
-test('繋げられない位置のセルは弾かれる', () => {
+test('繋げられるのはまわりの8マスだけ', () => {
   const game = gameWith(10, uniform(5));
   game.beginChain(at(0, 0));
   assert.equal(game.extendChain(at(3, 0)).type, 'rejected');     // 縦に3マス
   assert.equal(game.extendChain(at(0, 2)).type, 'rejected');     // 横2マス
-  assert.equal(game.extendChain(at(2, 2)).type, 'added');        // 斜め2マスは繋がる
+  assert.equal(game.extendChain(at(2, 2)).type, 'rejected');     // 斜め2マス
+  assert.equal(game.extendChain(at(1, 1)).type, 'added');        // 斜め1マスは繋がる
 });
 
-test('斜め2マスは間のセルを消費しない', () => {
+test('間のセルを飛び越えることはできない', () => {
   const values = uniform(9);
   values[at(0, 0)] = 4;
-  values[at(1, 1)] = 7;   // 間のセル。4 + 7 = 11 で超過するので繋げられない
-  values[at(2, 2)] = 6;
+  values[at(1, 1)] = 7;   // 間のセル。4 + 7 = 11 で超過する
+  values[at(2, 2)] = 6;   // 4 + 6 = 10 だが、2マス離れているので繋げられない
   const game = gameWith(10, values);
   game.beginChain(at(0, 0));
-  assert.equal(game.extendChain(at(1, 1)).type, 'rejected', '間のセルは超過するので拒否される');
-  game.extendChain(at(2, 2));
-  const result = game.endChain();
-  assert.equal(result.type, 'cleared');
-  assert.deepEqual(result.cells, [at(0, 0), at(2, 2)], '間のセルは消えない');
+  assert.equal(game.extendChain(at(1, 1)).type, 'rejected', '超過するので繋げられない');
+  assert.equal(game.extendChain(at(2, 2)).type, 'rejected', '飛び越えて繋げることもできない');
+  assert.equal(game.endChain().type, 'released');
+  assert.equal(game.score, 0);
 });
 
 test('同じセルは1チェイン内で1回まで', () => {

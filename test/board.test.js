@@ -7,36 +7,29 @@ import { COLS, ROWS, MIN_VALUE, MAX_VALUE } from '../src/game/config.js';
 
 const at = (row, col) => row * COLS + col;
 
-test('繋げられるセル: 上下左右1マス・斜め1マス・斜め2マスがすべて入る', () => {
-  // 6x6 の盤面なら12方向すべてが盤面に収まるセルがある
-  const table = neighborTable(6, 6);
-  const center = 2 * 6 + 2;   // (2,2)
-  assert.equal(table[center].length, 12);
+test('繋げられるセル: まわりの8マスだけ', () => {
+  const table = neighborTable();
   assert.deepEqual(
-    [...table[center]].sort((a, b) => a - b),
-    [1 * 6 + 2, 3 * 6 + 2, 2 * 6 + 1, 2 * 6 + 3,          // 上下左右1マス
-     1 * 6 + 1, 1 * 6 + 3, 3 * 6 + 1, 3 * 6 + 3,          // 斜め1マス
-     0 * 6 + 0, 0 * 6 + 4, 4 * 6 + 0, 4 * 6 + 4]          // 斜め2マス
+    [...table[at(2, 1)]].sort((a, b) => a - b),
+    [at(1, 1), at(3, 1), at(2, 0), at(2, 2),        // 上下左右1マス
+     at(1, 0), at(1, 2), at(3, 0), at(3, 2)]        // 斜め1マス
       .sort((a, b) => a - b),
   );
 });
 
-test('繋げられるセル: 実際の盤面（4列5行）', () => {
-  const table = neighborTable();
-  // (2,1) からは、斜め2マスのうち盤面に収まる (0,3) と (4,3) だけが加わる
-  assert.deepEqual(
-    [...table[at(2, 1)]].sort((a, b) => a - b),
-    [at(1, 1), at(3, 1), at(2, 0), at(2, 2),
-     at(1, 0), at(1, 2), at(3, 0), at(3, 2),
-     at(0, 3), at(4, 3)].sort((a, b) => a - b),
-  );
+test('繋げられるセル: 2マス離れたセルへは繋げられない', () => {
+  assert.equal(isConnectable(at(2, 1), at(0, 3)), false, '斜め2マス');
+  assert.equal(isConnectable(at(0, 0), at(2, 2)), false, '斜め2マス');
+  assert.equal(isConnectable(at(2, 1), at(0, 1)), false, '上へ2マス');
+  assert.equal(isConnectable(at(2, 1), at(2, 3)), false, '横へ2マス');
+  assert.equal(isConnectable(at(2, 1), at(0, 0)), false, '桂馬跳び');
 });
 
 test('繋げられるセル: 盤面の外には出ない', () => {
   const table = neighborTable();
-  assert.deepEqual([...table[at(0, 0)]].sort((a, b) => a - b), [at(0, 1), at(1, 0), at(1, 1), at(2, 2)]);
+  assert.deepEqual([...table[at(0, 0)]].sort((a, b) => a - b), [at(0, 1), at(1, 0), at(1, 1)]);
   for (const list of table) {
-    assert.ok(list.length >= 3 && list.length <= 12);
+    assert.ok(list.length >= 3 && list.length <= 8);
     assert.equal(new Set(list).size, list.length, '重複した候補がある');
   }
 });
@@ -46,13 +39,6 @@ test('繋げられるセル: 左右の端をまたがない', () => {
   assert.equal(isConnectable(at(1, right), at(1, 0)), false);
   assert.equal(isConnectable(at(1, right), at(2, 0)), false);
   assert.equal(isConnectable(at(1, right), at(0, right - 1)), true);
-});
-
-test('繋げられるセル: 斜め2マスは可、上下左右2マスは不可', () => {
-  assert.equal(isConnectable(at(2, 2), at(0, 0)), true);   // 斜め2マス
-  assert.equal(isConnectable(at(2, 2), at(0, 2)), false);  // 上へ2マス
-  assert.equal(isConnectable(at(2, 2), at(2, 0)), false);  // 左へ2マス
-  assert.equal(isConnectable(at(2, 2), at(0, 1)), false);  // 桂馬跳び
 });
 
 test('繋げられるセルの関係は対称', () => {
