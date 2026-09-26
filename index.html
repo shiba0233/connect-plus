@@ -28,8 +28,28 @@
     <ul class="target-list" id="target-list"></ul>
 
     <footer class="home__foot">
+      <button type="button" class="text-button" id="backup-button" aria-expanded="false" aria-controls="backup-panel">記録の控え</button>
       <button type="button" class="text-button" id="theme-button" aria-live="polite">テーマ: ダーク</button>
     </footer>
+
+    <!-- 記録の書き出しと読み込み。アプリを消すと端末の記録も消えるため (spec 5章) -->
+    <section class="backup" id="backup-panel" hidden>
+      <p class="backup__note">
+        ホーム画面からアプリを消すと、この端末の記録も一緒に消えます。
+        下の1行をメモや自分宛のメッセージに控えておくと、あとで戻せます。
+      </p>
+      <textarea class="backup__code" id="backup-code" rows="2" readonly spellcheck="false"></textarea>
+      <div class="backup__row">
+        <button type="button" class="button button--small" id="backup-copy">コピー</button>
+        <span class="backup__status" id="backup-status" role="status"></span>
+      </div>
+      <label class="backup__label" for="backup-input">控えた1行を貼り付けて戻す</label>
+      <div class="backup__row">
+        <input type="text" class="backup__input" id="backup-input" inputmode="text" autocomplete="off"
+               autocapitalize="off" spellcheck="false" placeholder="tashizan1:10=48,…">
+        <button type="button" class="button button--small" id="backup-restore">読み込む</button>
+      </div>
+    </section>
   </section>
 
   <!-- プレイ (spec 4.2) -->
