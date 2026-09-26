@@ -3,8 +3,8 @@
 // Cloudflare Worker をデプロイしたら、その URL をここに貼る。
 // 手順は README の「記録の保存先」を見る。
 
-/** 例: "https://connect-plus-bests.<サブドメイン>.workers.dev" */
-export const SYNC_URL = '';
+/** Cloudflare Workers + KV（worker/index.js）。空にすると端末の中だけで動く */
+export const SYNC_URL = 'https://connect-plus-bests.ibs22510.workers.dev';
 
 /**
  * 保存先の中での置き場所の名前。
