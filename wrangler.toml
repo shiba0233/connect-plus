@@ -9,3 +9,10 @@ compatibility_date = "2026-09-01"
 [[kv_namespaces]]
 binding = "BESTS"
 id = "bde2e4e6cdd54d029e058102f78e2e3f"
+
+# main 以外のブランチでは Cloudflare が `wrangler preview` を使う。そちらにも
+# 同じ置き場所を渡しておく（これが無いとブランチのビルドだけが失敗する）。
+# プレビューは本番と同じ KV を見るが、書き込みは「高い方を採る」だけなので記録は壊れない。
+[[previews.kv_namespaces]]
+binding = "BESTS"
+id = "bde2e4e6cdd54d029e058102f78e2e3f"
