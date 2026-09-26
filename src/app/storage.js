@@ -1,18 +1,11 @@
-// ローカル保存だけ (spec 5章)。サーバーもアカウントも持たない。
-// データが消えても致命的ではない前提。読めなければ既定値で動かす。
-//
-// ただし「消えても平気」と「消えたら悲しい」は別なので、記録を1行の文字列として
-// 書き出し／読み込みできるようにしてある。控えておけば自分で戻せる。
+// 端末への保存だけを見る (spec 5章)。読めなければ既定値で動かす。
+// 端末の外へ預ける話は sync.js。
 
-import { TARGETS } from '../game/config.js';
 import { normalizeBests, mergeBests } from '../shared/bests.js';
 
 // 保存先の名前は作り始めたときのまま。変えると既存の記録が読めなくなるので触らない。
 const BEST_KEY = 'kotobuki.bests.v1';
 const SETTINGS_KEY = 'kotobuki.settings.v1';
-
-/** 書き出した記録の目印。読み込むときに、それらしい文字列かどうかの確認に使う */
-const BACKUP_PREFIX = 'tashizan1:';
 
 const DEFAULT_SETTINGS = { theme: 'dark' };   // 既定はダークモード (spec 6.2)
 const THEMES = ['dark', 'light', 'system'];
@@ -73,49 +66,6 @@ export function saveBest(target, score) {
   bests[target] = score;
   write(BEST_KEY, bests);
   return true;
-}
-
-/**
- * 記録を1行の文字列にする。メモや自分宛のメッセージに控えておけば、
- * 端末を変えても、アプリを消してしまっても戻せる。
- * @returns {string} 例: "tashizan1:10=48,15=32"
- */
-export function exportBests() {
-  const bests = loadBests();
-  const body = Object.keys(bests)
-    .map(Number)
-    .sort((a, b) => a - b)
-    .map((target) => `${target}=${bests[target]}`)
-    .join(',');
-  return BACKUP_PREFIX + body;
-}
-
-/**
- * 書き出した文字列から記録を戻す。
- * 今ある記録とは高い方を採る。読み込みで記録が下がることはない。
- * @param {string} code
- * @returns {{ok: boolean, updated: number, total: number, reason?: string}}
- */
-export function importBests(code) {
-  const text = String(code ?? '').trim();
-  if (!text) return { ok: false, updated: 0, total: 0, reason: 'empty' };
-
-  const body = text.startsWith(BACKUP_PREFIX) ? text.slice(BACKUP_PREFIX.length) : text;
-  const entries = [];
-  for (const part of body.split(/[,\s]+/)) {
-    if (!part) continue;
-    const match = /^(\d+)[=:](\d+)$/.exec(part);
-    if (!match) return { ok: false, updated: 0, total: 0, reason: 'format' };
-    const target = Number(match[1]);
-    const score = Number(match[2]);
-    if (!TARGETS.includes(target)) return { ok: false, updated: 0, total: 0, reason: 'target' };
-    entries.push([target, score]);
-  }
-  if (entries.length === 0) return { ok: false, updated: 0, total: 0, reason: 'empty' };
-
-  const incoming = Object.fromEntries(entries);
-  const { updated } = mergeIntoBests(incoming);
-  return { ok: true, updated, total: entries.length };
 }
 
 /**
