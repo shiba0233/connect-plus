@@ -3,11 +3,8 @@
 import { TARGETS, WARN_MS } from '../game/config.js';
 import { Game } from '../game/game.js';
 import { BoardView } from './board-view.js';
-import { syncOnStart, pushLater, isConfigured as isSyncConfigured } from './sync.js';
-import {
-  getBest, loadBests, saveBest, loadSettings, saveSettings, THEMES,
-  exportBests, importBests, requestPersistence,
-} from './storage.js';
+import { syncOnStart, pushLater } from './sync.js';
+import { getBest, loadBests, saveBest, loadSettings, saveSettings, THEMES, requestPersistence } from './storage.js';
 
 const THEME_LABELS = { dark: 'ダーク', light: 'ライト', system: '端末に合わせる' };
 
@@ -22,14 +19,6 @@ const screens = {
 const ui = {
   targetList: el('target-list'),
   themeButton: el('theme-button'),
-  backupButton: el('backup-button'),
-  backupPanel: el('backup-panel'),
-  backupNote: el('backup-note'),
-  backupCode: el('backup-code'),
-  backupCopy: el('backup-copy'),
-  backupStatus: el('backup-status'),
-  backupInput: el('backup-input'),
-  backupRestore: el('backup-restore'),
   targetValue: el('target-value'),
   timeValue: el('time-value'),
   scoreValue: el('score-value'),
@@ -74,7 +63,6 @@ function show(name) {
 
 function renderHome() {
   const bests = loadBests();
-  if (!ui.backupPanel.hidden) ui.backupCode.value = exportBests();
   ui.targetList.replaceChildren(...TARGETS.map((target) => {
     const item = document.createElement('li');
     const button = document.createElement('button');
@@ -106,58 +94,6 @@ function renderTheme() {
   document.documentElement.dataset.theme = settings.theme;
   ui.themeButton.textContent = `テーマ: ${THEME_LABELS[settings.theme]}`;
 }
-
-// ---------------------------------------------------------------- 記録の控え
-
-function setBackupStatus(message) {
-  ui.backupStatus.textContent = message;
-}
-
-// 保存先があるかどうかで、控えの位置づけが変わる
-ui.backupNote.textContent = isSyncConfigured()
-  ? '記録は自動で保存先にも預けています。アプリを消しても、端末を変えても戻ります。'
-    + '下の1行は、保存先が使えないときのための控えです。'
-  : 'ホーム画面からアプリを消すと、この端末の記録も一緒に消えます。'
-    + '下の1行をメモや自分宛のメッセージに控えておくと、あとで戻せます。';
-
-ui.backupButton.addEventListener('click', () => {
-  const open = ui.backupPanel.hidden;
-  ui.backupPanel.hidden = !open;
-  ui.backupButton.setAttribute('aria-expanded', String(open));
-  if (open) {
-    ui.backupCode.value = exportBests();
-    setBackupStatus('');
-    ui.backupPanel.scrollIntoView({ block: 'end', behavior: 'smooth' });
-  }
-});
-
-ui.backupCopy.addEventListener('click', async () => {
-  ui.backupCode.value = exportBests();
-  try {
-    await navigator.clipboard.writeText(ui.backupCode.value);
-    setBackupStatus('コピーしました');
-  } catch {
-    // クリップボードが使えない環境では、選択状態にして手で控えてもらう
-    ui.backupCode.select();
-    setBackupStatus('選択しました。長押しでコピーしてください');
-  }
-});
-
-ui.backupRestore.addEventListener('click', () => {
-  const result = importBests(ui.backupInput.value);
-  if (!result.ok) {
-    setBackupStatus('読み込めませんでした');
-    return;
-  }
-  ui.backupInput.value = '';
-  ui.backupCode.value = exportBests();
-  renderHome();
-  setBackupStatus(result.updated > 0
-    ? `${result.updated}件の記録を戻しました`
-    : '今の記録の方が高いので、そのままにしました');
-});
-
-// ---------------------------------------------------------------- テーマ
 
 ui.themeButton.addEventListener('click', () => {
   settings = { ...settings, theme: THEMES[(THEMES.indexOf(settings.theme) + 1) % THEMES.length] };
