@@ -3,6 +3,7 @@
 import { TARGETS, WARN_MS } from '../game/config.js';
 import { Game } from '../game/game.js';
 import { BoardView } from './board-view.js';
+import { syncOnStart, pushLater, isConfigured as isSyncConfigured } from './sync.js';
 import {
   getBest, loadBests, saveBest, loadSettings, saveSettings, THEMES,
   exportBests, importBests, requestPersistence,
@@ -23,6 +24,7 @@ const ui = {
   themeButton: el('theme-button'),
   backupButton: el('backup-button'),
   backupPanel: el('backup-panel'),
+  backupNote: el('backup-note'),
   backupCode: el('backup-code'),
   backupCopy: el('backup-copy'),
   backupStatus: el('backup-status'),
@@ -110,6 +112,13 @@ function renderTheme() {
 function setBackupStatus(message) {
   ui.backupStatus.textContent = message;
 }
+
+// 保存先があるかどうかで、控えの位置づけが変わる
+ui.backupNote.textContent = isSyncConfigured()
+  ? '記録は自動で保存先にも預けています。アプリを消しても、端末を変えても戻ります。'
+    + '下の1行は、保存先が使えないときのための控えです。'
+  : 'ホーム画面からアプリを消すと、この端末の記録も一緒に消えます。'
+    + '下の1行をメモや自分宛のメッセージに控えておくと、あとで戻せます。';
 
 ui.backupButton.addEventListener('click', () => {
   const open = ui.backupPanel.hidden;
@@ -292,6 +301,9 @@ function finishGame() {
 
   ui.resultTarget.textContent = String(target);
   ui.resultScore.textContent = String(score);
+  // 記録は保存先にも預ける。プレイヤーは何もしなくてよい
+  if (updated) pushLater(renderHome);
+
   ui.resultBest.classList.toggle('is-updated', celebrate);
   ui.resultBest.textContent = celebrate
     ? `自己ベスト更新！ ${Number.isInteger(previousBest) ? `${previousBest} → ` : ''}${score}`
@@ -328,6 +340,12 @@ show('home');
 
 // しばらく遊ばなかったときに記録を消されないよう頼んでおく（断られても遊べる）
 requestPersistence();
+
+// 保存先から記録を取り込む。通信できなくても遊べる
+syncOnStart(() => {
+  if (screens.home.hidden) return;   // 遊んでいる最中に画面を描き直さない
+  renderHome();
+});
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   window.addEventListener('load', () => {
