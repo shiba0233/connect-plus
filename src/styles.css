@@ -89,13 +89,21 @@ body {
 
 /* ------------------------------------------------------------------ ホーム */
 
+/* 記録の控えを開くと縦に伸びるので、ホームだけはスクロールできるようにする。
+   なぞり操作があるのはプレイ画面なので、ここが動いても邪魔にならない (spec 6.4) */
+.screen--home {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
 .home__head { padding: 24px 4px 8px; }
 .home__title { margin: 0; font-size: 24px; font-weight: 600; letter-spacing: 0.04em; }
 .home__lead { margin: 6px 0 0; color: var(--text-dim); font-size: 14px; }
 
 /* お題は10〜25の16個。4列に並べる (spec 3.7) */
 .target-list {
-  flex: 1;
+  flex: 1 0 auto;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   align-content: center;
@@ -127,7 +135,52 @@ body {
 .target-button__best { color: var(--text-dim); font-size: 11px; font-variant-numeric: tabular-nums; }
 .target-button__best b { color: var(--text); font-weight: 600; margin-left: 3px; }
 
-.home__foot { padding: 8px 0 4px; text-align: center; }
+.home__foot {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 0 4px;
+}
+
+/* 記録の控え。普段は畳んでおく */
+.backup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.backup[hidden] { display: none; }
+.backup__note { margin: 0; color: var(--text-dim); font-size: 12px; line-height: 1.6; }
+.backup__label { color: var(--text-dim); font-size: 12px; }
+.backup__row { display: flex; align-items: center; gap: 8px; }
+.backup__status { color: var(--accent); font-size: 12px; }
+
+.backup__code,
+.backup__input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  resize: none;
+}
+.backup__code { word-break: break-all; }
+.backup__input { flex: 1; min-width: 0; }
+
+.button--small {
+  flex: none;
+  min-height: 44px;
+  padding: 0 16px;
+  font-size: 14px;
+}
 
 .text-button {
   min-height: 44px;
