@@ -8,4 +8,4 @@ compatibility_date = "2026-09-01"
 # `npx wrangler kv namespace create BESTS` が出した id をここに貼る
 [[kv_namespaces]]
 binding = "BESTS"
-id = "ここにKVのidを貼る"
+id = "bde2e4e6cdd54d029e058102f78e2e3f"
