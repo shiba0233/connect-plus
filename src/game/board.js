@@ -8,8 +8,8 @@ const neighborCache = new Map();
 /**
  * 繋げられるセルの一覧を盤面サイズごとに作る (spec 3.2)。
  *   - 上下左右に1マス
- *   - 斜めに1マスまたは2マス（2マスは間の斜めセルを飛び越える。間のセルは何でもよい）
- * 1セルからの候補は最大12セル。
+ *   - 斜めに1マス
+ * 1セルからの候補は最大8セル。まわりの8マスだけ、が指で分かる線引き。
  * @param {number} cols
  * @param {number} rows
  * @returns {number[][]} index -> 繋げられる index の配列
@@ -22,7 +22,6 @@ export function neighborTable(cols = COLS, rows = ROWS) {
   const offsets = [
     [-1, 0], [1, 0], [0, -1], [0, 1],       // 上下左右1マス
     [-1, -1], [-1, 1], [1, -1], [1, 1],     // 斜め1マス
-    [-2, -2], [-2, 2], [2, -2], [2, 2],     // 斜め2マス（飛び越え）
   ];
 
   const table = [];

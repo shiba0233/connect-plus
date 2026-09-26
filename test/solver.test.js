@@ -38,13 +38,19 @@ test('倍数にならない組み合わせは成立しない', () => {
   assert.equal(hasChain(filled(3), 9), true);
 });
 
-test('斜め2マスを使わないと成立しない盤面を見つけられる', () => {
-  // (0,0)=4 と (2,2)=6 だけが小さい。両者は斜め2マスでのみ繋がる
-  const values = boardWith([[at(0, 0), 4], [at(2, 2), 6]]);
+test('斜め1マスで繋がる2セルは成立する', () => {
+  const values = boardWith([[at(0, 0), 4], [at(1, 1), 6]]);
   const chain = findChain(values, 10);
-  assert.ok(chain, '斜め2マスのチェインを見落とした');
-  assert.deepEqual([...chain].sort((a, b) => a - b), [at(0, 0), at(2, 2)]);
+  assert.ok(chain);
+  assert.deepEqual([...chain].sort((a, b) => a - b), [at(0, 0), at(1, 1)]);
   assert.ok(isValidChain(values, 10, chain));
+});
+
+test('2マス離れた2セルだけでは成立しない', () => {
+  // 斜めに2マス離れた位置。繋げられないので、飛び越えて成立することはない
+  const values = boardWith([[at(0, 0), 4], [at(2, 2), 6]]);
+  assert.equal(hasChain(values, 10), false);
+  assert.equal(isValidChain(values, 10, [at(0, 0), at(2, 2)]), false);
 });
 
 test('繋がっていない2セルだけでは成立しない', () => {
@@ -84,7 +90,7 @@ test('総当たりと一致する（3x3盤面で全数確認）', () => {
       const row = Math.floor(index / cols);
       const col = index % cols;
       const out = [];
-      for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1], [-2, -2], [-2, 2], [2, -2], [2, 2]]) {
+      for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]]) {
         const r = row + dr;
         const c = col + dc;
         if (r >= 0 && r < rows && c >= 0 && c < cols) out.push(r * cols + c);
