@@ -1,0 +1,11 @@
+# 自己ベストの保存先（Cloudflare Workers + KV）。
+# デプロイ手順は README の「記録の保存先」を見る。
+
+name = "connect-plus-bests"
+main = "worker/index.js"
+compatibility_date = "2026-09-01"
+
+# `npx wrangler kv namespace create BESTS` が出した id をここに貼る
+[[kv_namespaces]]
+binding = "BESTS"
+id = "ここにKVのidを貼る"

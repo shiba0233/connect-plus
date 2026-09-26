@@ -34,10 +34,7 @@
 
     <!-- 記録の書き出しと読み込み。アプリを消すと端末の記録も消えるため (spec 5章) -->
     <section class="backup" id="backup-panel" hidden>
-      <p class="backup__note">
-        ホーム画面からアプリを消すと、この端末の記録も一緒に消えます。
-        下の1行をメモや自分宛のメッセージに控えておくと、あとで戻せます。
-      </p>
+      <p class="backup__note" id="backup-note"></p>
       <textarea class="backup__code" id="backup-code" rows="2" readonly spellcheck="false"></textarea>
       <div class="backup__row">
         <button type="button" class="button button--small" id="backup-copy">コピー</button>

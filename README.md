@@ -28,13 +28,44 @@ iPhone なら Safari で開いて、共有ボタン → 「ホーム画面に追
 ビルドは無いので、リポジトリのファイルがそのまま配信される。`.nojekyll` は Pages の Jekyll 処理を
 止めるためのもの（JSDoc の `{{` が Liquid 構文と紛らわしいため）。
 
-## 記録が消えないようにする
+## 記録の保存先
 
-自己ベストは端末のローカルストレージにしか無い。とくに **iOS はホーム画面からアプリを削除すると、
-そのアプリの保存領域ごと消える**。これは web 側からは防げない。
+自己ベストは端末のローカルストレージに置いているが、**iOS はホーム画面からアプリを削除すると、
+そのアプリの保存領域ごと消える**。これは web 側からは防げない。なので端末の外にも預ける。
 
-ホームの「記録の控え」から1行の文字列を書き出せるので、メモや自分宛のメッセージに控えておく。
-同じ画面に貼り付けて戻せる。読み込みは今ある記録と高い方を採るので、戻して記録が下がることはない。
+預け先は Cloudflare Workers + KV（`worker/index.js`）。プレイヤーは何もしなくてよい。
+
+- 起動時に取りに行き、端末の記録と合わせる（お題ごとに高い方を採る）
+- セッションが終わって記録が伸びたら送る
+- 通信できなくても遊べる。送りそびれたら覚えておいて、次の起動で送り直す
+- `src/app/sync-config.js` の `SYNC_URL` が空なら、この仕組みは丸ごと動かない（端末の中だけで動く）
+
+置いているのはお題ごとのスコアだけで、個人を特定できるものは持たない。リポジトリが public なので
+URL も置き場所の名前も誰でも見られるが、保存先は「今より高いスコアでしか上書きしない」ので、
+いたずらされても記録が消えることはない。
+
+### 保存先を用意する（初回だけ）
+
+手元に Node を入れなくても、ブラウザだけでできる。
+
+1. <https://dash.cloudflare.com> でアカウントを作る（無料）
+2. **Storage & Databases → KV → Create a namespace**。名前は `BESTS` にする
+3. **Compute (Workers) → Create → Start with Hello World → Deploy**。名前は `connect-plus-bests` にする
+4. 作った Worker の **Edit code** を開き、中身を全部消して [`worker/index.js`](worker/index.js) を丸ごと貼り付けて **Deploy**
+5. Worker の **Settings → Bindings → Add → KV namespace**。Variable name に `BESTS`、
+   KV namespace に 2 で作ったものを選んで保存
+6. Worker の URL（`https://connect-plus-bests.<サブドメイン>.workers.dev`）を
+   [`src/app/sync-config.js`](src/app/sync-config.js) の `SYNC_URL` に貼って push
+
+`wrangler.toml` も置いてあるので、手元に Node があるなら `npx wrangler deploy` でもよい。
+
+動いているかは、ブラウザで `https://<Workerのurl>/bests/<SYNC_KEY>` を開くと分かる。
+記録が JSON で見える（まだ何も預けていなければ `{}`）。
+
+### 手元に控える方法も残してある
+
+ホームの「記録の控え」から1行の文字列を書き出せる。保存先が使えないときや、
+別のところへ移したいときのための出口。読み込みは今ある記録と高い方を採るので、戻して記録が下がることはない。
 
 ```
 tashizan1:10=48,11=127,15=32
@@ -60,7 +91,10 @@ src/game/board.js      盤面、繋げられるセルの表、消去→落下→
 src/game/solver.js     成立可能な組み合わせが存在するかの判定
 src/game/generator.js  盤面の生成と、詰んだときの組み直し
 src/game/game.js       1セッション。チェイン・スコア・時間
-src/app/storage.js     自己ベストと設定（ローカル保存のみ）
+src/shared/bests.js    自己ベストの値そのものの扱い（アプリと保存先の両方から使う）
+src/app/storage.js     端末への保存（自己ベストと設定）
+src/app/sync.js        保存先とのやりとり。通信できなくても遊べる
+src/app/sync-config.js 保存先の URL。空なら端末の中だけで動く
 src/app/board-view.js  盤面の描画となぞり操作
 src/app/main.js        ホーム / プレイ / 結果の画面遷移
 ```

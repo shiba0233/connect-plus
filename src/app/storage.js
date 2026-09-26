@@ -5,6 +5,7 @@
 // 書き出し／読み込みできるようにしてある。控えておけば自分で戻せる。
 
 import { TARGETS } from '../game/config.js';
+import { normalizeBests, mergeBests } from '../shared/bests.js';
 
 // 保存先の名前は作り始めたときのまま。変えると既存の記録が読めなくなるので触らない。
 const BEST_KEY = 'kotobuki.bests.v1';
@@ -36,15 +37,23 @@ function write(key, value) {
 
 /** お題ごとの自己ベスト。履歴は持たない (spec 3.7) */
 export function loadBests() {
-  const stored = read(BEST_KEY);
-  const bests = {};
-  if (stored && typeof stored === 'object') {
-    for (const [target, score] of Object.entries(stored)) {
-      const t = Number(target);
-      if (Number.isInteger(t) && Number.isInteger(score) && score >= 0) bests[t] = score;
-    }
+  return normalizeBests(read(BEST_KEY));
+}
+
+/**
+ * 外から来た記録を取り込む。お題ごとに高い方を採るので、取り込みで記録が下がることはない。
+ * @param {{[target: number]: number}} incoming
+ * @returns {{updated: number, bests: {[target: number]: number}}}
+ */
+export function mergeIntoBests(incoming) {
+  const current = loadBests();
+  const merged = mergeBests(current, incoming);
+  let updated = 0;
+  for (const [target, score] of Object.entries(merged)) {
+    if (current[target] !== score) updated += 1;
   }
-  return bests;
+  if (updated > 0) write(BEST_KEY, merged);
+  return { updated, bests: merged };
 }
 
 export function getBest(target) {
@@ -104,15 +113,8 @@ export function importBests(code) {
   }
   if (entries.length === 0) return { ok: false, updated: 0, total: 0, reason: 'empty' };
 
-  const bests = loadBests();
-  let updated = 0;
-  for (const [target, score] of entries) {
-    const current = bests[target];
-    if (Number.isInteger(current) && current >= score) continue;
-    bests[target] = score;
-    updated += 1;
-  }
-  if (updated > 0) write(BEST_KEY, bests);
+  const incoming = Object.fromEntries(entries);
+  const { updated } = mergeIntoBests(incoming);
   return { ok: true, updated, total: entries.length };
 }
 
